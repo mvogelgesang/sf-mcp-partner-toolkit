@@ -1,3 +1,10 @@
+---
+name: diagnose-connection
+description: Troubleshoot MCP server connectivity issues using MCP Workbench and CLI diagnostics. Installs MCP Workbench if needed, tests the connection, and walks through a structured error taxonomy to identify and resolve failures. Use when a deployed MCP integration is not working.
+disable-model-invocation: true
+allowed-tools: Bash Read
+---
+
 # Diagnose Connection
 
 Troubleshoot MCP server connectivity issues using MCP Workbench and CLI diagnostics. This skill covers both installing the diagnostic tool and systematically identifying connection failures.

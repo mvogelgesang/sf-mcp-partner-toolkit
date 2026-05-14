@@ -1,3 +1,10 @@
+---
+name: scaffold-mcp-integration
+description: Generate the four Salesforce metadata files needed to register a partner's MCP server. Launches the create-sf-mcp-client-metadata interactive wizard and guides the user through each prompt. Use after /setup-workspace confirms the environment is ready.
+disable-model-invocation: true
+allowed-tools: Bash Read
+---
+
 # Scaffold MCP Integration
 
 Generate the four Salesforce metadata files needed to register a partner's MCP server. Uses the `create-sf-mcp-client-metadata` interactive wizard.

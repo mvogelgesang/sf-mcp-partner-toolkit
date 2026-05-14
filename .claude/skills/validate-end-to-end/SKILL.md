@@ -1,3 +1,10 @@
+---
+name: validate-end-to-end
+description: Confirm an MCP integration works end-to-end from Agentforce. Verifies tool discovery, schema correctness, and agent invocation. Use as the final step after deployment and connection testing succeed.
+disable-model-invocation: true
+allowed-tools: Bash Read
+---
+
 # Validate End to End
 
 Confirm the MCP integration works from Agentforce — not just at the connection level, but as a tool that an agent can discover and invoke.

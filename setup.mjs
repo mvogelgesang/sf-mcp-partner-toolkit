@@ -4,7 +4,7 @@
  * MCP Partner Toolkit initializer
  *
  * Copies CLAUDE.md and .claude/skills/ into the current working directory
- * (or a --target path) so Claude Code / Cursor picks up the MCP partner
+ * (or a --target path) so Claude Code picks up the MCP partner
  * integration skills automatically.
  *
  * Usage:
@@ -12,7 +12,7 @@
  *   npx @mvogelgesang/sf-mcp-partner-toolkit@latest --target ./my-project
  */
 
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "fs";
 import { resolve, join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -38,12 +38,12 @@ Options:
   -h, --help       Show this help message
 
 What gets created:
-  CLAUDE.md                              Domain context for Claude Code
-  .claude/skills/setup-workspace.md      Verify prerequisites
-  .claude/skills/scaffold-mcp-integration.md  Generate MCP metadata
-  .claude/skills/deploy-and-configure.md Deploy and configure auth
-  .claude/skills/diagnose-connection.md  Troubleshoot with MCP Workbench
-  .claude/skills/validate-end-to-end.md  Confirm Agentforce integration
+  CLAUDE.md                                          Domain context for Claude Code
+  .claude/skills/setup-workspace/SKILL.md            Verify prerequisites
+  .claude/skills/scaffold-mcp-integration/SKILL.md   Generate MCP metadata
+  .claude/skills/deploy-and-configure/SKILL.md       Deploy and configure auth
+  .claude/skills/diagnose-connection/SKILL.md        Troubleshoot with MCP Workbench
+  .claude/skills/validate-end-to-end/SKILL.md        Confirm Agentforce integration
 `);
   process.exit(0);
 }
@@ -55,13 +55,25 @@ const targetDir = targetIdx !== -1 && args[targetIdx + 1]
 
 const force = args.includes("--force");
 
-// ── Files to copy ───────────────────────────────────────────────────
+// ── Collect files to copy ───────────────────────────────────────────
+
+function collectFiles(baseDir, relPrefix) {
+  const results = [];
+  for (const entry of readdirSync(join(baseDir, relPrefix))) {
+    const relPath = join(relPrefix, entry);
+    const fullPath = join(baseDir, relPath);
+    if (statSync(fullPath).isDirectory()) {
+      results.push(...collectFiles(baseDir, relPath));
+    } else {
+      results.push(relPath);
+    }
+  }
+  return results;
+}
 
 const filesToCopy = [
   "CLAUDE.md",
-  ...readdirSync(join(__dirname, ".claude", "skills")).map(
-    (f) => join(".claude", "skills", f)
-  ),
+  ...collectFiles(__dirname, join(".claude", "skills")),
 ];
 
 // ── Pre-flight checks ───────────────────────────────────────────────
@@ -85,16 +97,17 @@ if (existing.length > 0 && !force) {
 
 // ── Copy files ──────────────────────────────────────────────────────
 
-const skillsDir = join(targetDir, ".claude", "skills");
-if (!existsSync(skillsDir)) {
-  mkdirSync(skillsDir, { recursive: true });
-}
-
 let written = 0;
 
 for (const relPath of filesToCopy) {
   const src = join(__dirname, relPath);
   const dest = join(targetDir, relPath);
+
+  // Ensure parent directory exists
+  const destDir = dirname(dest);
+  if (!existsSync(destDir)) {
+    mkdirSync(destDir, { recursive: true });
+  }
 
   const content = readFileSync(src, "utf8");
   writeFileSync(dest, content, "utf8");

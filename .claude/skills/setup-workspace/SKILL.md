@@ -1,3 +1,9 @@
+---
+name: setup-workspace
+description: Verify that the current environment has everything needed for an MCP partner integration session. Checks Node.js, Salesforce CLI, org connection, and SFDX project structure. Run this at the start of every partner call.
+allowed-tools: Bash Read
+---
+
 # Setup Workspace
 
 Verify that the current environment has everything needed for an MCP partner integration session. This skill is the first thing to run on a call.

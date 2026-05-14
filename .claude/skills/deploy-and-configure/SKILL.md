@@ -1,3 +1,10 @@
+---
+name: deploy-and-configure
+description: Deploy generated MCP metadata to a Salesforce org, assign permission sets, and walk through post-deploy OAuth credential configuration. Use after /scaffold-mcp-integration has generated the four metadata files.
+disable-model-invocation: true
+allowed-tools: Bash Read
+---
+
 # Deploy and Configure
 
 Deploy the generated MCP metadata to the target Salesforce org and walk through post-deploy authentication setup.
