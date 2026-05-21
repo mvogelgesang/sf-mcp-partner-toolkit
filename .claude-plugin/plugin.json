@@ -18,8 +18,5 @@
     "agentforce",
     "integration",
     "partner"
-  ],
-  "engines": {
-    "claude-code": ">=2.0.0"
-  }
+  ]
 }

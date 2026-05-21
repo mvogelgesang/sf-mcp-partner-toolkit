@@ -10,16 +10,36 @@ A Claude Code plugin that provides skills for rapidly building, deploying, and v
 
 ## Installation
 
-Install as a Claude Code plugin:
+Inside Claude Code, add this marketplace and install the plugin:
 
-```bash
-claude plugin install git@github.com:mvogelgesang/sf-mcp-partner-toolkit.git
+```text
+/plugin marketplace add mvogelgesang/sf-mcp-partner-toolkit
+/plugin install sf-mcp-partner-toolkit@mvogelgesang-plugins
 ```
 
-Or for local development:
+The first command registers the marketplace catalog hosted in this repo. The second installs the plugin. Skills become available immediately, namespaced under `sf-mcp-partner-toolkit` (e.g., `/sf-mcp-partner-toolkit:setup-workspace`).
+
+### Updating
+
+Claude Code checks for updates automatically. To force a check:
+
+```text
+/plugin update sf-mcp-partner-toolkit@mvogelgesang-plugins
+```
+
+### Local development
+
+To work on the plugin without publishing, point Claude Code at your local clone:
 
 ```bash
-claude --plugin-dir ./sf-mcp-partner-toolkit
+claude --plugin-dir /path/to/sf-mcp-partner-toolkit
+```
+
+Or add the local checkout as a marketplace for repeated testing:
+
+```text
+/plugin marketplace add /path/to/sf-mcp-partner-toolkit
+/plugin install sf-mcp-partner-toolkit@mvogelgesang-plugins
 ```
 
 ## Prerequisites

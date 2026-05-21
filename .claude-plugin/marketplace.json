@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "mvogelgesang-plugins",
+  "owner": {
+    "name": "mvogelgesang",
+    "url": "https://github.com/mvogelgesang"
+  },
+  "description": "Claude Code plugins by mvogelgesang",
+  "plugins": [
+    {
+      "name": "sf-mcp-partner-toolkit",
+      "source": "./",
+      "description": "Skills for building, deploying, and validating MCP integrations with Salesforce Agentforce",
+      "category": "salesforce",
+      "keywords": [
+        "salesforce",
+        "mcp",
+        "agentforce",
+        "integration",
+        "partner"
+      ]
+    }
+  ]
+}
