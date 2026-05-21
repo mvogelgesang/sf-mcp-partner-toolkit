@@ -1,8 +1,7 @@
 ---
 name: validate-end-to-end
 description: Confirm an MCP integration works end-to-end from Agentforce. Verifies tool discovery, schema correctness, and agent invocation. Use as the final step after deployment and connection testing succeed.
-disable-model-invocation: true
-allowed-tools: Bash Read
+allowed-tools: Bash(sf org open *) Bash(sf data query *) Bash(find *) Bash(cat *) Bash(echo *) Read AskUserQuestion
 ---
 
 # Validate End to End
@@ -15,13 +14,13 @@ After `/deploy-and-configure` succeeds and `/diagnose-connection` confirms the M
 
 ## Steps
 
-1. **Verify tool discovery via MCP Workbench.** If not already done during `/diagnose-connection`:
+1. **Verify tool discovery via MCP Workbench.** If not already done during `/diagnose-connection`, execute:
 
    ```bash
    sf org open -o {ORG_ALIAS} --path "/lightning/n/MCP_Workbench"
    ```
 
-   In the Workbench:
+   Guide user through the Workbench UI:
    - Select the Named Credential
    - Click **Connect** (should show server info)
    - Click **List Tools** (should show the partner's tools with names, descriptions, and input schemas)
@@ -29,7 +28,7 @@ After `/deploy-and-configure` succeeds and `/diagnose-connection` confirms the M
 
    If tools appear and a test call returns a valid response, the integration layer is working.
 
-2. **Verify the External Service Registration schema.** The schema in the External Service Registration metadata determines what Agentforce can see. Check that it reflects the partner's actual capabilities:
+2. **Verify the External Service Registration schema.** The schema in the External Service Registration metadata determines what Agentforce can see. Execute read:
 
    ```bash
    cat force-app/main/default/externalServiceRegistrations/{MCP_NAME}.externalServiceRegistration-meta.xml
@@ -39,23 +38,23 @@ After `/deploy-and-configure` succeeds and `/diagnose-connection` confirms the M
 
 3. **Test from Agentforce (if the org has an agent configured).**
 
-   Open Agentforce Agent Builder:
+   Execute command to open Agentforce Agent Builder:
    ```bash
    sf org open -o {ORG_ALIAS} --path "/lightning/setup/CopilotStudio/home"
    ```
 
+   Guide user to:
    - Open an existing agent or create a test agent
    - The partner's MCP tools should appear in the available actions list
    - Assign a tool to a topic and test it in the agent preview
 
    If tools do not appear in Agent Builder:
-   - Check that the External Service Registration deployed successfully
+   - Execute query to verify External Service Registration deployed successfully
    - Verify the schema JSON is well-formed (a common issue is XML-escaping problems in the schema)
-   - Confirm the user has the permission set assigned
+   - Execute query to confirm the user has the permission set assigned
 
-4. **Document what was built.** Before ending the session, create a summary for the partner:
+4. **Document what was built.** Before ending the session, execute summary generation:
 
-   List all the metadata that was deployed:
    ```bash
    echo "=== MCP Integration: {MCP_NAME} ==="
    echo ""
@@ -77,10 +76,12 @@ After `/deploy-and-configure` succeeds and `/diagnose-connection` confirms the M
 
 ## If tools don't appear in Agentforce
 
+When tools fail to appear, diagnose using these patterns:
+
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | Tools show in MCP Workbench but not in Agent Builder | External Service Registration schema does not match or is empty | Re-run the metadata wizard with live schema fetch, or manually update the schema XML |
-| Agent can see tools but invocation fails | Runtime auth issue (different user context than the one you tested with) | Assign the permission set to the agent's running user or the integration user |
+| Agent can see tools but invocation fails | Runtime auth issue (different user context than the one you tested with) | Execute permission set assignment to the agent's running user or the integration user |
 | "No tools found" in Workbench | MCP server's `tools/list` returns empty | This is a partner-side issue — their server needs to register tools |
 
 ## What to explain to the partner

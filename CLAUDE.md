@@ -1,10 +1,10 @@
-# MCP Partner Toolkit
+# MCP Integration Toolkit for Salesforce
 
-This workspace helps Salesforce Partner Solution Engineers rapidly build, deploy, and validate MCP (Model Context Protocol) integrations during partner engagements. It is designed to be used live — on a call with a partner — not as a reference doc to hand off afterward.
+This plugin provides Claude Code with the context and workflows needed to build, deploy, and validate MCP (Model Context Protocol) integrations with Salesforce Agentforce. Use it for development, live demos, troubleshooting, or as reference documentation for your MCP integration project.
 
 ## What MCP-in-Salesforce means
 
-MCP is a protocol that lets Agentforce agents call external tools and read external resources over HTTP. A partner registers their MCP server with Salesforce, and Agentforce agents can discover and invoke the partner's tools at runtime.
+MCP is a protocol that lets Agentforce agents call external tools and read external resources over HTTP. You register your MCP server with Salesforce, and Agentforce agents can discover and invoke your tools at runtime.
 
 The integration surface is four metadata components:
 
@@ -20,7 +20,7 @@ These four files are tightly coupled — they reference each other by API name. 
 ## Authentication patterns
 
 ### OAuth 2.0 Client Credentials (most common)
-- Partner provides: token endpoint URL, client ID, client secret, scopes
+- You will need: token endpoint URL, client ID, client secret, scopes
 - External Credential uses `authenticationProtocol=Oauth` with `ClientCredentialsClientSecret`
 - After deploy, an admin must enter the client ID and secret in Setup > Named Credentials > External Credentials > {name} > edit the principal
 - **Common failure**: forgetting to populate the principal after deploy — the callout will return 401
@@ -29,28 +29,30 @@ These four files are tightly coupled — they reference each other by API name. 
 - External Credential uses `authenticationProtocol=NoAuthentication`
 - Simpler setup, but the MCP server must handle auth differently (API key in URL, IP allowlisting, etc.)
 
-### Post-deploy auth checklist
+### Post-deploy configuration checklist
 1. Deploy metadata (`sf project deploy start`)
 2. Assign the permission set to the running user (`sf org assign permset`)
 3. For OAuth: navigate to Setup > Named Credentials > External Credentials > {name} and enter client ID + secret on the NamedPrincipal
-4. Test the connection using MCP Workbench (see `/diagnose-connection` skill)
+4. **Register tools**: navigate to Setup > MCP Servers (`/lightning/setup/McpServer`), click the server name, then **Manage Tools** and add the tools you want available to agents
+5. Test the connection using MCP Workbench (see `/diagnose-connection` skill)
 
 ## Common failure modes
 
-These are the issues you will hit most often during live demos. Know them cold.
+These are the issues you will encounter most often when building MCP integrations.
 
 | Symptom | Cause | Fix |
 |---|---|---|
+| Tools not appearing in Agent Builder | MCP tools not registered in Setup | Navigate to Setup > MCP Servers > {server name} > Manage Tools and add the tools |
 | 401 Unauthorized | OAuth credentials not populated in External Credential principal | Enter client ID + secret in Setup > Named Credentials > External Credentials |
 | 401 Unauthorized | Permission set not assigned | `sf org assign permset -n {MCP_NAME}_Perm_Set` |
-| 403 Forbidden | Salesforce outbound IPs not allowlisted on partner's MCP server | Partner needs to allowlist Salesforce IP ranges for the org's instance |
-| 403 with HTML body | WAF/CDN blocking the request (Cloudflare, AWS WAF, etc.) | Partner needs to allowlist or create a bypass rule |
+| 403 Forbidden | Salesforce outbound IPs not allowlisted on your MCP server | Allowlist Salesforce IP ranges for the org's instance (find in Setup > Security > Network Access) |
+| 403 with HTML body | WAF/CDN blocking the request (Cloudflare, AWS WAF, etc.) | Configure allowlist or bypass rule in your firewall/CDN |
 | 404 Not Found | Wrong endpoint URL in Named Credential | Check the URL — common mistakes: missing `/mcp`, trailing slash mismatch, wrong version path |
 | `Unauthorized endpoint` exception | Remote Site Setting missing or Named Credential URL mismatch | Verify the Named Credential URL matches the MCP server exactly |
 | `No such host` exception | DNS resolution failure — typo in URL or server is down | Verify URL, try resolving from your machine: `nslookup {hostname}` |
 | Connection timeout | MCP server is unreachable from Salesforce's network | Check if the server is publicly accessible (not behind a VPN/private network) |
 | `We couldn't access the credential(s)` | UserExternalCredential record missing | Assign the permission set, or manually create the UserExternalCredential in Setup |
-| 429 Too Many Requests | Rate limiting on the MCP server | Wait and retry, or ask partner to increase rate limits for the Salesforce integration |
+| 429 Too Many Requests | Rate limiting on the MCP server | Wait and retry, or increase rate limits on your MCP server for Salesforce requests |
 | Schema validation errors after deploy | External Service Registration schema is stale | Re-run the metadata wizard and fetch a fresh schema from the MCP server |
 
 ## Tools in this toolkit
@@ -91,12 +93,12 @@ When generating metadata, use these conventions:
 - The running user needs System Administrator profile or equivalent permissions to deploy metadata and configure Named Credentials
 - For scratch orgs: include the MCP beta feature flag in `project-scratch-def.json`
 
-## Session structure for partner calls
+## Integration workflow
 
-The skills in `.claude/skills/` follow this sequence:
+The plugin skills follow this sequence:
 
-1. `/setup-workspace` — Verify prerequisites and connect to the target org
-2. `/scaffold-mcp-integration` — Generate all metadata using the create wizard
-3. `/deploy-and-configure` — Deploy metadata and walk through post-deploy auth setup
-4. `/diagnose-connection` — Install MCP Workbench and/or troubleshoot failures
-5. `/validate-end-to-end` — Confirm the integration works from Agentforce
+1. `/sf-mcp-partner-toolkit:setup-workspace` — Verify prerequisites and connect to the target org
+2. `/sf-mcp-partner-toolkit:scaffold-mcp-integration` — Generate all metadata using the create wizard
+3. `/sf-mcp-partner-toolkit:deploy-and-configure` — Deploy metadata and configure authentication
+4. `/sf-mcp-partner-toolkit:diagnose-connection` — Install MCP Workbench and/or troubleshoot failures
+5. `/sf-mcp-partner-toolkit:validate-end-to-end` — Confirm the integration works from Agentforce

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "sf-mcp-partner-toolkit",
+  "displayName": "Salesforce MCP Partner Toolkit",
+  "description": "Skills for building, deploying, and validating MCP integrations with Salesforce Agentforce",
+  "version": "1.0.0",
+  "author": {
+    "name": "mvogelgesang",
+    "url": "https://github.com/mvogelgesang"
+  },
+  "repository": "https://github.com/mvogelgesang/sf-mcp-partner-toolkit",
+  "homepage": "https://github.com/mvogelgesang/sf-mcp-partner-toolkit#readme",
+  "license": "Apache-2.0",
+  "skills": "./skills/",
+  "keywords": [
+    "salesforce",
+    "mcp",
+    "agentforce",
+    "integration",
+    "partner"
+  ],
+  "engines": {
+    "claude-code": ">=2.0.0"
+  }
+}

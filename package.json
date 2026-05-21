@@ -1,21 +1,17 @@
 {
   "name": "@mvogelgesang/sf-mcp-partner-toolkit",
-  "version": "0.1.0",
-  "description": "Claude Code skills for Salesforce MCP partner integrations",
+  "version": "1.0.0",
+  "description": "Claude Code plugin: skills for building, deploying, and validating MCP integrations with Salesforce Agentforce",
   "type": "module",
-  "bin": {
-    "sf-mcp-partner-toolkit": "setup.mjs"
+  "scripts": {
+    "test": "node scripts/validate.mjs"
   },
-  "files": [
-    "setup.mjs",
-    "CLAUDE.md",
-    ".claude"
-  ],
   "keywords": [
     "salesforce",
     "mcp",
     "agentforce",
     "claude-code",
+    "claude-code-plugin",
     "partner",
     "skills"
   ],
@@ -25,5 +21,8 @@
     "type": "git",
     "url": "git+https://github.com/mvogelgesang/sf-mcp-partner-toolkit.git"
   },
-  "homepage": "https://github.com/mvogelgesang/sf-mcp-partner-toolkit#readme"
+  "homepage": "https://github.com/mvogelgesang/sf-mcp-partner-toolkit#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

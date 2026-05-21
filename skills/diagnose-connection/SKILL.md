@@ -1,13 +1,12 @@
 ---
 name: diagnose-connection
 description: Troubleshoot MCP server connectivity issues using MCP Workbench and CLI diagnostics. Installs MCP Workbench if needed, tests the connection, and walks through a structured error taxonomy to identify and resolve failures. Use when a deployed MCP integration is not working.
-disable-model-invocation: true
-allowed-tools: Bash Read
+allowed-tools: Bash(sf data query *) Bash(sf package install *) Bash(sf org assign permset *) Bash(sf org open *) Bash(curl *) Bash(nslookup *) Bash(git clone *) Read AskUserQuestion WebFetch
 ---
 
 # Diagnose Connection
 
-Troubleshoot MCP server connectivity issues using MCP Workbench and CLI diagnostics. This skill covers both installing the diagnostic tool and systematically identifying connection failures.
+Troubleshoot MCP server connectivity issues using MCP Workbench and CLI diagnostics. This skill executes all diagnostic checks automatically.
 
 ## When to use
 
@@ -23,33 +22,41 @@ Troubleshoot MCP server connectivity issues using MCP Workbench and CLI diagnost
 
 ### Phase 1: Install MCP Workbench (if not already installed)
 
-1. **Check if MCP Workbench is already installed:**
+1. **Check if MCP Workbench is already installed.** Execute query:
 
    ```bash
-   sf data query --query "SELECT Id, NamespacePrefix, DeveloperName FROM ApexClass WHERE Name = 'McpToolTester'" --json -o {ORG_ALIAS}
+   sf data query --query "SELECT Id, NamespacePrefix, Name FROM ApexClass WHERE Name = 'McpToolTester'" --json -o {ORG_ALIAS}
    ```
 
    If it returns a result, skip to Phase 2.
 
-2. **Install the package:**
+2. **Fetch the latest package version ID.** Execute WebFetch to get the current package version from the MCP Workbench repository:
 
-   ```bash
-   sf package install -p "MCPWorkbench@0.1.0-2" -o {ORG_ALIAS} --wait 5
+   ```
+   WebFetch(
+     url: "https://github.com/mvogelgesang/MCP-Workbench",
+     prompt: "Extract the latest package version ID from the installation instructions. Return only the version ID (format: 04t...) with no additional text."
+   )
    ```
 
-   For namespaced orgs where package install may not work, deploy from source instead:
+3. **Install the package.** Execute package installation using the fetched version ID:
+
    ```bash
-   cd /tmp && git clone https://github.com/mvogelgesang/MCP-Workbench.git && cd MCP-Workbench
-   sf project deploy start --source-dir force-app/main/default -o {ORG_ALIAS}
+   sf package install -p {PACKAGE_VERSION_ID} -o {ORG_ALIAS} --wait 5
    ```
 
-3. **Assign the permission set:**
+   For namespaced orgs where package install may not work, execute source deployment instead:
+   ```bash
+   cd /tmp && git clone https://github.com/mvogelgesang/MCP-Workbench.git && cd MCP-Workbench && sf project deploy start --source-dir force-app/main/default -o {ORG_ALIAS}
+   ```
+
+4. **Assign the permission set.** Execute:
 
    ```bash
    sf org assign permset --name MCP_Workbench -o {ORG_ALIAS}
    ```
 
-4. **Open the workbench:**
+5. **Open the workbench.** Execute:
 
    ```bash
    sf org open -o {ORG_ALIAS} --path "/lightning/n/MCP_Workbench"
@@ -57,7 +64,7 @@ Troubleshoot MCP server connectivity issues using MCP Workbench and CLI diagnost
 
 ### Phase 2: Test the connection in MCP Workbench
 
-Walk the user through the MCP Workbench UI:
+Guide the user through the MCP Workbench UI:
 
 1. **Select the Named Credential** from the dropdown (it should show `{MCP_NAME}`)
 2. **Click "Connect"** — this sends an MCP `initialize` JSON-RPC request
@@ -66,32 +73,26 @@ Walk the user through the MCP Workbench UI:
 
 ### Phase 3: CLI-based diagnostics (when the UI is not enough)
 
-If the workbench error is not sufficient, or you prefer CLI-based investigation:
+If the workbench error is not sufficient, execute these diagnostic queries:
 
-1. **Verify the Named Credential exists and has the right URL:**
+1. **Verify the Named Credential exists and has the right URL.** Execute:
 
    ```bash
    sf data query --query "SELECT DeveloperName, Endpoint FROM NamedCredential WHERE DeveloperName = '{MCP_NAME}'" --json -o {ORG_ALIAS}
    ```
 
-2. **Check the External Credential has a principal configured:**
-
-   ```bash
-   sf data query --query "SELECT Id, DeveloperName, AuthenticationProtocol FROM ExternalCredential WHERE DeveloperName = '{MCP_NAME}'" --json -o {ORG_ALIAS}
-   ```
-
-3. **Verify the permission set is assigned:**
+2. **Verify the permission set is assigned.** Execute:
 
    ```bash
    sf data query --query "SELECT Id, Assignee.Name, PermissionSet.Name FROM PermissionSetAssignment WHERE PermissionSet.Name = '{MCP_NAME}_Perm_Set'" --json -o {ORG_ALIAS}
    ```
 
-   If no results, assign it:
+   If no results, execute assignment:
    ```bash
    sf org assign permset -n {MCP_NAME}_Perm_Set -o {ORG_ALIAS}
    ```
 
-4. **Test the MCP server directly from your machine (outside Salesforce):**
+3. **Test the MCP server directly from your machine (outside Salesforce).** Execute:
 
    ```bash
    curl -s -X POST {MCP_SERVER_URL} \
@@ -105,7 +106,7 @@ If the workbench error is not sufficient, or you prefer CLI-based investigation:
 
    If this also fails, the issue is on the MCP server side.
 
-5. **For OAuth — test the token endpoint directly:**
+4. **For OAuth integrations — test the token endpoint directly.** Execute:
 
    ```bash
    curl -s -X POST {AUTH_PROVIDER_URL} \
@@ -118,13 +119,19 @@ If the workbench error is not sufficient, or you prefer CLI-based investigation:
 
 ## Error taxonomy
 
-Use this to diagnose based on the error you see in MCP Workbench or Salesforce debug logs:
+Use this to diagnose based on the error you see in MCP Workbench or Salesforce debug logs.
+
+**Important:** When directing users to update Named Credentials or External Credentials, always use:
+```bash
+sf org open -o {ORG_ALIAS} --path "/lightning/setup/NamedCredential/home"
+```
+External Credentials do not have their own addressable URL — they are accessed via the Named Credential setup page by clicking the "External Credentials" tab.
 
 ### HTTP Status Codes
 
 | Code | Meaning | Action |
 |---|---|---|
-| **401** | Authentication failed | Check: (1) OAuth client ID + secret entered in External Credential principal? (2) Permission set assigned? (3) Credentials correct? (4) Token endpoint URL correct? |
+| **401** | Authentication failed | Check: (1) OAuth client ID + secret entered in External Credential principal? Open `/lightning/setup/NamedCredential/home`, click External Credentials tab, find {MCP_NAME}, edit the principal (2) Permission set assigned? (3) Credentials correct? (4) Token endpoint URL correct? |
 | **403** | Forbidden | Check: (1) Salesforce outbound IPs allowlisted on partner server? (2) WAF/CDN blocking? (ask partner to check their server logs) (3) OAuth scopes sufficient? |
 | **403 with HTML body** | WAF/gateway block (Cloudflare, AWS WAF) | Partner must create an IP allowlist rule for Salesforce outbound IPs. See: https://help.salesforce.com/s/articleView?id=000382092 |
 | **404** | Endpoint not found | Verify the URL path — check for missing `/mcp` suffix, wrong API version, trailing slash mismatch |
@@ -141,7 +148,7 @@ Use this to diagnose based on the error you see in MCP Workbench or Salesforce d
 | `timeout` or `timed out` | Callout exceeded 120-second limit | Partner's server is too slow or unreachable from Salesforce's network. Test with curl from your machine to compare. |
 | `No such host` | DNS resolution failed | Typo in the URL, or the server's DNS is not publicly resolvable. Run `nslookup {hostname}` to verify. |
 | `Connection refused` | Server is not accepting connections on that port | Server may be down, or the port is wrong. Verify the URL includes the correct port if non-standard. |
-| `We couldn't access the credential(s)` | UserExternalCredential record missing | Assign the permission set: `sf org assign permset -n {MCP_NAME}_Perm_Set` |
+| `We couldn't access the credential(s)` | UserExternalCredential record missing | Assign the permission set: `sf org assign permset -n {MCP_NAME}_Perm_Set`. If issue persists, open `/lightning/setup/NamedCredential/home`, click External Credentials tab, verify the principal is configured. |
 
 ### JSON-RPC / MCP Protocol Errors
 

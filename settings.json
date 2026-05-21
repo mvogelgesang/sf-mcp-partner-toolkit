@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash:npm create @mvogelgesang/sf-mcp-client-metadata@latest*",
+      "Bash:npx @mvogelgesang/create-sf-mcp-client-metadata@latest*",
+      "Bash:sf org *",
+      "Bash:sf project *",
+      "Bash:sf data query *",
+      "Bash:sf package install *",
+      "Bash:sf org assign permset *",
+      "Bash:node --version",
+      "Bash:sf --version",
+      "Bash:curl *"
+    ]
+  }
+}
